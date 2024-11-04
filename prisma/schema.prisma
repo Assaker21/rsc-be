@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id Int @id @default(autoincrement())
+
+  firstName String?
+  lastName  String?
+  username  String?
+  email     String?
+  password  String?
+  image     String?
+
+  accessToken String? @db.Text
+
+  posts            post[]
+  postInteractions postInteraction[]
+  events           event[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model post {
+  id Int @id @default(autoincrement())
+
+  title       String?
+  description String? @db.Text
+  images      Json?
+
+  posts            post[]            @relation("post_children")
+  postInteractions postInteraction[]
+
+  user   user? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  parentPost   post? @relation("post_children", fields: [parentPostId], references: [id])
+  parentPostId Int?
+
+  event   event? @relation(fields: [eventId], references: [id])
+  eventId Int?   @unique
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model postInteraction {
+  id Int @id @default(autoincrement())
+
+  type String?
+
+  user   user? @relation(fields: [userId], references: [id])
+  userId Int?
+  post   post? @relation(fields: [postId], references: [id])
+  postId Int?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model event {
+  id Int @id @default(autoincrement())
+
+  status   eventStatus? @relation(fields: [statusId], references: [id])
+  statusId Int?
+
+  registeredUsers user[]
+  post            post?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model eventStatus {
+  id Int @id @default(autoincrement())
+
+  description String?
+  events      event[]
+}
